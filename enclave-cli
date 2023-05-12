@@ -2,13 +2,21 @@
 #
 #
 #
-ENCLAVE_FS=$1
-ENCLAVE_SIZE="$(ls -lh $1 | awk '{print $5}' | tail -n1)" #double pipe classic
+ENCLAVE_FILE="encl.rnd"
 ENCLAVE_LOOP="$(sudo losetup -f)"
 
-echo ~****~**~~*~*~*~*~**~**~*~*~****~*~*~*~*~***~*~*~***~*~*~***~**~*~*~****~*~*~*~*~***~*~*~*~**~*~*~**
+echo "~****~**~~*~*~*~*~**~**~*~*~****~*~*~*~*~***~*~*~***~*~*~***~**~*~*~****~*~*~*~*~***~*~*~*~**~*~*~**"
+help () {
+	echo "		This is the enclave cli help panel
+			usage:
+				 enclave-cli -f [ <path_to_encl.rnd> ]
+				 
+				 options:
+				  -f, --file  FILE
+				  -h, --help "
+}
 
-generate_rand_file () {
+generate_rnd_file () {
 	read -p "            desired size? 
                     enter e.g. '1' for 1*(2^10)^2 Bytes (=1MiB) or '4K' (=4000) for 4GiB
                     enter now: " input
@@ -17,15 +25,32 @@ generate_rand_file () {
 		  		then twd=$HOME ;
 				else twd=$PWD
 			fi
-		  	outfile=$twd/encl.rand
-			echo "writing random (indeciferable) values to $twd/encl.rand"
+		  	outfile=$twd/encl.rnd
+			echo "writing random (indeciferable) data to $twd/encl.rnd"
 	dd if=/dev/urandom of=$outfile bs=1024 count="$input"x1024 status=progress
 }
-generate_rand_file
+
+add_to_lvm () {
+	read -p "		would you like to add $USER to the logical volume management (lvm) group?
+					if yes then you will only need to authenticate now and to decrypt the first time.
+					[Y/n]" input
+		case $input in 
+			'Y'|'y'|'') sudo usermod -a -G lvm $USER 
+						echo "added to lvm group" ;;
+			'N'|'n') echo "dnot adding to lvm group" ;;
+		esac
+}
+
+make_fs_on_rnd () {
+	if [ ! -z $($1 | grep .rnd) ] ;
+		then mkfs.btrfs $1 ;
+	fi
+}
+
 
 activate_rnd_fs () {
 	sudo bash -c "
-	     losetup --direct-io=on $ENCLAVE_LOOP $ENCLAVE_FS
+	     losetup --direct-io=on $ENCLAVE_LOOP $ENCLAVE_FILE
 	     cryptsetup open $ENCLAVE_LOOP --type=luks2 rnd
 	     lvscan
 	     "

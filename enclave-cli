@@ -1,15 +1,30 @@
 #!/usr/bin/env sh
-mkdir $HOME/.enclave
-ENCLAVE_LOOP="$(sudo losetup -f)"
+
+##############################------------source code-----------#########################3####
+######## run header ####################################
+###########s eatablishes variables #####################
+
+if [ ! -d  $HOME/.enclave] ;
+	then mkdir $HOME/.enclave ;
+fi
+
+# get fresh loop dev name
+ENCLAVE_loop="$(sudo losetup -f)"
+
+# working directory is current run directory if possible
 if [ ! -w $PWD ] ;
     then mkdir $HOME/.enclave/workdir 
     twd=$HOME/.enclave/work-dir ; # temp work dir
 	else twd=$PWD
 fi
-ENCLAVE_FILE=$twd/encl.rnd  #~*~*~*# enclave random. disordered // aranged
 
+#name for enclave 
+ENCLAVE_name=$twd/a.rngd  #~*~*~*# enclave random. disordered // aranged
 
+fancy_line () {
 echo "~****~**~~*~*~*~*~**~**~*~*~****~*~*~*~*~***~*~*~***~*~*~***~**~*~*~****~*~*~*~*~***~*~*~*~**~*~*~**"
+}
+
 
 help () {
 	echo "		This is the enclave cli help panel
@@ -31,8 +46,8 @@ generate_rnd_file () {
                     enter now: " input
 
 			
-		  	rnd=$twd/$ENCLAVE_FILE
-			echo "writing random (indeciferable) data to $ENCLAVE_FILE"
+		  	rnd=$twd/$ENCLAVE_name
+			echo "writing random (indeciferable) data to $ENCLAVE_name"
 	dd if=/dev/urandom of=$rnd bs=1024 count="$input"x1024 status=progress
 	echo "
 			You have now created a raw random to-be-arranged enclave file
@@ -133,9 +148,10 @@ init_routine () {
 	echo "running init, generating random key"
 	generate_random_key
 }
-
+#########################################################################
 #######~*~*~*~*~*~**~~*~**** "main" below *****~~~~*~*~*~*~*~*~*~*~*~*~*~
-
+####### top level code ##################################################
+####### for running function and io #####################################
 case $1 in
 	'generate'|'g') generate_rnd_file ;;
 	'config'|'c') config_procedure ;;

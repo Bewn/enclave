@@ -1,2 +1,2 @@
 # enclave
-A simple and minimal scirpt for creating a secure and automatically encrypted virtual filesystem in a randomized file, ultra fast using kernel logical volume management and loop device.
+a short shell-based cli for using linux unified key system, kernal logical volume management, and virtual loop devices to make a randomized file into a disk image for a virtual filesystem that you can mount anywnere. Essentially like encrypted usb sticks, but with virtual devices and accessible anywhere.

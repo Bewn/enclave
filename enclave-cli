@@ -2,15 +2,19 @@
 #
 #
 #
-ENCLAVE_FILE="encl.rnd"
-ENCLAVE_LOOP="$(sudo losetup -f)"
+ENCLAVE_FILE="encl.rnd"  #~*~*~*# enclave random. disordered // aranged
+ENCLAVE_LOOP="$l(sudo losetup -f)"
 
 echo "~****~**~~*~*~*~*~**~**~*~*~****~*~*~*~*~***~*~*~***~*~*~***~**~*~*~****~*~*~*~*~***~*~*~*~**~*~*~**"
 help () {
 	echo "		This is the enclave cli help panel
 			usage:
-				 enclave-cli -f [ <path_to_encl.rnd> ]
+				 enclave-cli [ command ]
+				 enclave-cli [ -o | --OPTION ][ <path_to_*.rnd> ]
 				 
+				 commands:
+				   g, generate : to generate an enclave
+				   c, config   : to edit, init, config, etc.				 
 				 options:
 				  -f, --file  FILE
 				  -h, --help "
@@ -25,13 +29,17 @@ generate_rnd_file () {
 		  		then twd=$HOME ;
 				else twd=$PWD
 			fi
-		  	outfile=$twd/encl.rnd
-			echo "writing random (indeciferable) data to $twd/encl.rnd"
-	dd if=/dev/urandom of=$outfile bs=1024 count="$input"x1024 status=progress
+		  	rnd=$twd/$ENCLAVE_FILE
+			echo "writing random (indeciferable) data to $twd/$ENCLAVE_FILE"
+	dd if=/dev/urandom of=$rnd bs=1024 count="$input"x1024 status=progress
+	echo "
+			You have now created a raw random to-be-arranged enclave file
+			hence it's name is jumbled but with inferred meaning."
 }
 
 add_to_lvm () {
-	read -p "		would you like to add $USER to the logical volume management (lvm) group?
+	read -p "		
+					would you like to add $USER to the logical volume management (lvm) group?
 					if yes then you will only need to authenticate now and to decrypt the first time.
 					[Y/n]" input
 		case $input in 
@@ -68,9 +76,42 @@ setup_logical_volume () {
 	fi
 }
 
-deactivate_benclave () {
+deactivate_enclave () {
    sudo bash -c "lvchange -an rnd
    		 cryptsetup close rnd
    		 losetup -D"
 } 
 
+config_procedure () {
+	read -p "			 	configure? 
+
+									[Y/n] " input
+	case $input in
+		y|Y|'') add_to_lvm ;;
+		n|N) echo "not adding to lvm group, you will need sudo privileges to mount" ;;
+	esac
+}
+
+
+
+#######~*~*~*~*~*~**~~*~**** "main" below *****~~~~*~*~*~*~*~*~*~*~*~*~*~
+
+case $1 in
+	'generate'|'g') generate_rnd_file ;;
+	'config'|'c') config_procedure ;;
+esac
+
+echo "welcome to the enclave command-line interface!"
+echo "~*~*~*~*~*~~*~*~*~ enjoy ~*~*~*~~*~*~*~*~*~*~*~"
+PROMPT="encl-cli % <- "
+read -p "$PROMPT" input
+
+while true
+do
+	case $input in
+		q|Q|quit|exit) exit 0 ;;
+		c|C|config) config_procedure ;;
+		h|H|help) help
+	esac
+	read -p "$PROMPT" input
+done

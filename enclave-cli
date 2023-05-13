@@ -111,7 +111,8 @@ do
 	case $input in
 		q|Q|quit|exit) exit 0 ;;
 		c|C|config) config_procedure ;;
-		h|H|help) help
+		h|H|help) help ;;
+		g|G|gen|generate) generate_rnd_file ;;
 	esac
 	read -p "$PROMPT" input
 done

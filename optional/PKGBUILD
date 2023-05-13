@@ -1,0 +1,14 @@
+
+
+##### pkgbuild for installing with arch linux ##########
+
+pkgname=enclave
+pkgver=0.1
+pkgrel=1
+arch=('any')
+
+depends=('bash'
+'lvm2'
+'cryptsetup'
+)
+

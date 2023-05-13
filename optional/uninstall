@@ -1,0 +1,31 @@
+#!/usr/bin/env sh
+
+## clean loacl package build and any installed files
+
+uninstall () {
+	if [ -f $PWD/PKGBUILD ];
+		then rm -r pkg src enclave-*.zst;
+	fi
+
+	if [ -d /opt/enclave ];
+		then sudo rm -r /opt/enclave
+	fi
+
+	if [ -f $HOME/.enclave ];
+		then read -p "do you want to erase all local enclave keys? [N/y]" input
+		case $input in
+			y|Y) rm -r $HOME/.enclave ;;
+			n|N|'') "keeping keys safe in $HOME/.enclave" ;;
+		esac ;
+	fi
+
+	echo "enclave uninstalled"
+}
+
+read -p "would you like to uninstall/clean enclave? [y/N]" uninput
+
+case $uninput in
+	Y|y) uninstall && echo "uninstalling..." ;;
+	N|n|'') echo "not uninstalling" ;;
+esac
+

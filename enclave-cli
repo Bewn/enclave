@@ -1,8 +1,13 @@
 #!/usr/bin/env sh
 
-##############################------------source code-----------#########################3####
-######## run header ####################################
-###########s eatablishes variables #####################
+##############################------------source code-----------##############################
+##~****~**~~*~*~*~*~**~**~*~*~****~*~*~*~*~***~*~*~***~*~*~***~**~*~*~****~*~*~*~*~***~*~*~*~*
+
+
+#####################################################|
+######## run header #################################|
+############ eatablishes variables ##################|
+#####################################################|
 
 if [ ! -d  $HOME/.enclave] ;
 	then mkdir $HOME/.enclave ;
@@ -88,8 +93,6 @@ randomly_generate_unique_key () {
 	cat $twd/random-seed | tr -dc 'a-zA-Z0-9~!@#$%^&*_' | fold -w 64 | head -n 10000 > $twd/unicode-uqique-key
 }
 
-
-
 create_loop_device () {
 	#with random encl.rnd as disk file
 	sudo losetup --direct-io=on $ENCLAVE_LOOP $ENCLAVE_FILE
@@ -99,8 +102,6 @@ format_rnd_fs () {
 	## overwrites the random file with filesystem encrypted with out univode key
 	sudo cryptsetup luksFormat --type luks2 $ENCLAVE_LOOP $twd/unicode-unique-key
 }
-
-
 
 activate_enclave_fs () {
 	echo "	activating encrypted enclave with unicode-unique-key"
@@ -148,10 +149,13 @@ init_routine () {
 	echo "running init, generating random key"
 	generate_random_key
 }
-#########################################################################
-#######~*~*~*~*~*~**~~*~**** "main" below *****~~~~*~*~*~*~*~*~*~*~*~*~*~
-####### top level code ##################################################
-####### for running function and io #####################################
+
+#########################################################################|
+#######~*~*~*~*~*~**~~*~**** "main" below *****~~~~*~*~*~*~*~*~*~*~*~*~*~|
+####### top level code ##################################################|
+####### for running function and io #####################################|
+#########################################################################|
+
 case $1 in
 	'generate'|'g') generate_rnd_file ;;
 	'config'|'c') config_procedure ;;

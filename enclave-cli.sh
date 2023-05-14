@@ -16,7 +16,7 @@ if [ ! -d  $HOME/.enclave ] ;
 fi
 
 # get fresh loop dev name
-ENCLAVE_loop="$(sudo losetup -f)"
+ENCLAVE_loop=$(sudo losetup -f)
 
 # working directory is current run directory if possible
 if [ ! -w $PWD ] ;
@@ -26,10 +26,11 @@ if [ ! -w $PWD ] ;
 fi
 
 #name for enclave 
-ENCLAVE_name=$twd/a.rngd  #~*~*~*# enclave random. disordered // aranged
+ENCLAVE_name=encl.rnd #~*~*~*# enclave random. disordered // aranged
+ENCLAVE_dir=$twd
 
 fancy_line () {
-echo "~****~**~~*~*~*~*~**~**~*~*~****~*~*~*~*~***~*~*~***~*~*~***~**~*~*~****~*~*~*~*~***~*~*~*~**~*~*~**"
+	echo "~****~**~~*~*~*~*~**~**~*~*~****~*~*~*~*~***~*~*~***~*~*~***~**~*~*~****~*~*~*~*~***~*~*~*~**~*~*~**"
 }
 
 help () {
@@ -49,17 +50,23 @@ help () {
 }
 
 generate_rnd_file () {
-	read -p "            desired size? 
-                    enter e.g. '1' for 1*(2^10)^2 Bytes (=1MiB) or '4K' (=4000) for 4GiB
-                    enter now: " input
+	read -p "            desired enclave size in MiB? 
+		enter e.g. '1' for (8)*(2^8)^2 random bits (=1MiB)
+		or enter '4K' (=4000*8*(2^8)^2) for 4GiB
+		the pattern N*8*2^(n^2) guarantees a size where no bytes are incomplete. 
+		could be useful for compression.
+		(this is a meaningless but interesting way to remember the numbers and that
+		we're always working with sequences of bits in the end.)
+		it eill be saved as a .rnd file.
+
+			enter now: " input
 
 			
-		  	rnd=$twd/$ENCLAVE_name
+		  	rnd_file=$twd/$ENCLAVE_name
 			echo "writing random (indeciferable) data to $ENCLAVE_name"
-	dd if=/dev/urandom of=$rnd bs=1024 count="$input"x1024 status=progress
+	dd if=/dev/urandom of=$rnd_file bs=1024 count="$input"x1024 status=progress
 	echo "
-			You have now created a raw random to-be-arranged enclave file
-			hence it's name is jumbled but with inferred meaning."
+			You have now created a raw random to-be-arranged enclave file"
 }
 
 add_to_lvm () {
@@ -70,7 +77,7 @@ add_to_lvm () {
 		case $input in 
 			'Y'|'y'|'') sudo usermod -a -G lvm $USER 
 						echo "added to lvm group" ;;
-			'N'|'n') echo "dnot adding to lvm group" ;;
+			'N'|'n') echo "not adding to lvm group" ;;
 		esac
 }
 
@@ -84,7 +91,7 @@ randomly_generate_unique_key () {
 	echo "
 		we will now generate a precisely reproducable simple unicode key file
 		this file will be the encryption key for the enclave. Keep it safe and secure.
-		It is 10,000 lines of length 64 characters each.
+		It is 10,000 lines of length 64=8^2 characters each. (could do bytewise product)
 		It is generated from $twd/random-seed 
 		and stored at $twd/unicode-unique-key
 		...
@@ -92,7 +99,7 @@ randomly_generate_unique_key () {
 		.
 		..
 		..."
-	dd if=/dev/urandom of=$twd/random-seed bs=64 count=100K status=progress/
+	dd if=/dev/urandom of=$twd/random-seed bs=64 count=100K status=progress
 	cat $twd/random-seed | tr -dc 'a-zA-Z0-9~!@#$%^&*_' | fold -w 64 | head -n 10000 > $twd/unicode-uqique-key
 }
 
@@ -147,14 +154,17 @@ encode_enclave () {
 	true
 }
 
-init_routine () {
-	# make_fs_on_rnd
-	echo "running init, generating random key"
-	generate_random_key
-}
-
 full_generate_enclave () {
-	:
+	generate_rnd_file
+	randomly_generate_unique_key
+	create_loop_device
+	format_rnd_fs
+	activate_enclave_fs
+
+	## the fact that the main program code is just an ordered list of functions
+	## is evidence of the usefulness of functional style programming
+	## it would be better in a language with guaranteed data types and compiled functions
+	## still this is very satisfying code!
 }
 
 ######### distro specfic functions
@@ -187,7 +197,7 @@ check_dependencies () {
 #########################################################################|
 #######~*~*~*~*~*~**~~*~**** "main" below *****~~~~*~*~*~*~*~*~*~*~*~*~*~|
 ####### top level code ##################################################|
-####### for running functions and io #####################################|
+####### for running functions and io ####################################|
 #########################################################################|
 
 ## non interactive run opts
@@ -205,7 +215,7 @@ do
 		c|C|config) config_procedure ;;
 		h|H|help) help ;;
 		g|G|gen|generate) full_generate_enclave ;;
-		i|init) init_routine ;;
+		i|I|init) init_routine ;;
 		check) check_dependencies ;;
 	esac
 	read -p "$PROMPT" input
